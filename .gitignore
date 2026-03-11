@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+venv/
+ENV/
+server.log
+nohup.out
+output/*.pdf
+data/*.db
+data/*.json

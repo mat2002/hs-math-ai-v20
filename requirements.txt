@@ -1,0 +1,10 @@
+flask
+pyyaml
+numpy
+pandas
+jinja2
+openai
+sympy
+tqdm
+gunicorn
+python-dotenv
