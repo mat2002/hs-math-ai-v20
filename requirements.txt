@@ -7,4 +7,5 @@ openai
 sympy
 tqdm
 gunicorn
+Flask-Login
 python-dotenv
