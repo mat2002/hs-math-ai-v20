@@ -1,169 +1,243 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高校数学教材AI v20 - 教材生成</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; padding-top: 50px; }
-        .container { max-width: 800px; }
-        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { text-align: center; margin-bottom: 30px; }
-        .btn-primary { background-color: #2c3e50; border: none; }
-        .btn-primary:hover { background-color: #34495e; }
-        #progress-container { display: none; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>高校数学教材AI v20</h1>
-            <p class="text-muted">AIが完全自動で数学教材を生成します</p>
-        </div>
+{% extends "base.html" %}
 
-        <div class="card p-4">
-            <form id="generate-form">
-                <div class="mb-3">
-                    <label for="unit" class="form-label">単元を選択</label>
-                    <select class="form-select" id="unit" name="unit">
-                        <optgroup label="数学I">
-                            <option value="数と式">数と式</option>
-                            <option value="2次関数">2次関数</option>
-                            <option value="図形と計量">図形と計量</option>
-                            <option value="データの分析">データの分析</option>
-                        </optgroup>
-                        <optgroup label="数学A">
-                            <option value="場合の数と確率">場合の数と確率</option>
-                            <option value="図形の性質">図形の性質</option>
-                            <option value="整数の性質">整数の性質</option>
-                        </optgroup>
-                    </select>
-                </div>
+{% block title %}教材生成 - 高校数学教材AI v20{% endblock %}
 
-                <div class="mb-3">
-                    <label for="difficulty" class="form-label">難易度</label>
-                    <input type="range" class="form-range" min="1" max="5" step="1" id="difficulty" name="difficulty" value="3">
-                    <div class="d-flex justify-content-between">
-                        <span>基礎 (1)</span>
-                        <span>標準 (3)</span>
-                        <span>発展 (5)</span>
+{% block extra_css %}
+<style>
+    .form-section {
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+    }
+    .form-label {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: var(--secondary-color);
+    }
+    .type-card {
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s;
+        text-align: center;
+        padding: 20px;
+        height: 100%;
+    }
+    .type-card:hover {
+        border-color: var(--accent-color);
+        background-color: rgba(52, 152, 219, 0.05);
+    }
+    .type-card.active {
+        border-color: var(--accent-color);
+        background-color: rgba(52, 152, 219, 0.1);
+    }
+    .type-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: var(--accent-color);
+    }
+    #progress-container {
+        display: none;
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <h2 class="mb-4 text-center"><i class="fas fa-magic me-2"></i>教材を生成する</h2>
+        
+        <form id="generate-form">
+            <!-- 教材タイプの選択 -->
+            <div class="form-section">
+                <label class="form-label">1. 教材タイプを選択</label>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="card type-card active" data-type="worksheet">
+                            <i class="fas fa-file-alt type-icon"></i>
+                            <h6>演習プリント</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card type-card" data-type="exam">
+                            <i class="fas fa-tasks type-icon"></i>
+                            <h6>小テスト</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card type-card" data-type="textbook">
+                            <i class="fas fa-book type-icon"></i>
+                            <h6>教科書</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card type-card" data-type="mock_exam">
+                            <i class="fas fa-graduation-cap type-icon"></i>
+                            <h6>模試形式</h6>
+                        </div>
                     </div>
                 </div>
+                <input type="hidden" name="type" id="doc_type" value="worksheet">
+            </div>
 
-                <div class="mb-3">
-                    <label for="num_problems" class="form-label">問題数</label>
-                    <input type="number" class="form-control" id="num_problems" name="num_problems" value="5" min="1" max="20">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">教材タイプ</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="type" id="type_worksheet" value="worksheet" checked>
-                        <label class="form-check-label" for="type_worksheet">演習プリント (PDF)</label>
+            <!-- 単元・トピックの選択 -->
+            <div class="form-section">
+                <label class="form-label">2. 単元・トピックを選択</label>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <select class="form-select" id="unit-select" name="unit" required>
+                            <option value="" disabled selected>単元を選択してください</option>
+                            <option value="数学I">数学I</option>
+                            <option value="数学A">数学A</option>
+                            <option value="数学II">数学II</option>
+                            <option value="数学B">数学B</option>
+                            <option value="数学III">数学III</option>
+                        </select>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="type" id="type_exam" value="exam">
-                        <label class="form-check-label" for="type_exam">小テスト (PDF)</label>
+                    <div class="col-md-6 mb-3">
+                        <select class="form-select" id="topic-select" name="topic" required>
+                            <option value="" disabled selected>トピックを選択してください</option>
+                        </select>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="type" id="type_textbook" value="textbook">
-                        <label class="form-check-label" for="type_textbook">教科書 (PDF)</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="type" id="type_mock_exam" value="mock_exam">
-                        <label class="form-check-label" for="type_mock_exam">模試形式 (PDF)</label>
-                    </div>
-                </div>
-
-                <div class="d-grid gap-2">
-                    <button type="submit" id="submit-btn" class="btn btn-primary btn-lg">教材を生成する</button>
-                </div>
-            </form>
-
-            <div id="progress-container">
-                <hr>
-                <p id="status-text" class="text-center fw-bold">生成準備中...</p>
-                <div class="progress" role="progressbar" aria-label="Generation progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%">0%</div>
                 </div>
             </div>
+
+            <!-- 詳細設定 -->
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">3. 難易度 (1:基礎 〜 5:発展)</label>
+                        <input type="range" class="form-range" min="1" max="5" step="1" value="3" name="difficulty" id="difficulty-range">
+                        <div class="d-flex justify-content-between px-1">
+                            <small>1</small><small>2</small><small>3</small><small>4</small><small>5</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">4. 問題数</label>
+                        <input type="number" class="form-control" name="num_problems" value="5" min="1" max="20">
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg px-5" id="generate-btn">
+                    <i class="fas fa-cog fa-spin me-2 d-none" id="spinner"></i>
+                    <i class="fas fa-paper-plane me-2" id="paper-plane"></i>教材を生成する
+                </button>
+            </div>
+        </form>
+
+        <!-- プログレスバー -->
+        <div id="progress-container" class="form-section text-center">
+            <h5 id="progress-status" class="mb-3">生成準備中...</h5>
+            <div class="progress mb-3" style="height: 25px;">
+                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;">0%</div>
+            </div>
+            <p class="text-muted small">AIが問題を考案し、LaTeXでPDFを構築しています。これには1〜2分かかる場合があります。</p>
         </div>
-
-        <footer class="mt-5 text-center text-muted">
-            <p>&copy; 2026 高校数学教材AI v20 Platform</p>
-        </footer>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        document.getElementById('generate-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const submitBtn = document.getElementById('submit-btn');
-            const progressContainer = document.getElementById('progress-container');
-            const progressBar = document.getElementById('progress-bar');
-            const statusText = document.getElementById('status-text');
-
-            // UIのリセット
-            submitBtn.disabled = true;
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '0%';
-            progressBar.innerText = '0%';
-            statusText.innerText = '生成を開始しています...';
-
-            try {
-                // 実際の生成リクエスト（簡略化のため、ここでは直接PDFをリクエストし、
-                // サーバー側で生成完了後にダウンロードさせる。
-                // 進捗のリアルタイム表示には別途SSE等の実装が必要だが、
-                // まずはUI上のアニメーションで対応）
-                
-                let progress = 0;
-                const interval = setInterval(() => {
-                    if (progress < 90) {
-                        progress += Math.random() * 10;
-                        if (progress > 90) progress = 90;
-                        progressBar.style.width = `${Math.round(progress)}%`;
-                        progressBar.innerText = `${Math.round(progress)}%`;
-                        
-                        if (progress < 30) statusText.innerText = 'AIが問題を考案中...';
-                        else if (progress < 60) statusText.innerText = '数式を検証し、図解を生成中...';
-                        else statusText.innerText = 'LaTeXでPDFを構築中...';
-                    }
-                }, 1500);
-
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                clearInterval(interval);
-
-                if (response.ok) {
-                    progressBar.style.width = '100%';
-                    progressBar.innerText = '100%';
-                    statusText.innerText = '生成完了！ダウンロードを開始します。';
-                    
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'document.pdf';
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                } else {
-                    statusText.innerText = 'エラーが発生しました。';
-                    statusText.classList.add('text-danger');
-                }
-            } catch (error) {
-                console.error(error);
-                statusText.innerText = '通信エラーが発生しました。';
-                statusText.classList.add('text-danger');
-            } finally {
-                submitBtn.disabled = false;
-            }
+{% block extra_js %}
+<script>
+    // 教材タイプの選択処理
+    document.querySelectorAll('.type-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            document.getElementById('doc_type').value = card.dataset.type;
         });
-    </script>
-</body>
-</html>
+    });
+
+    // 単元・トピックの連動処理
+    const topics = {
+        "数学I": ["数と式", "2次関数", "図形と計量", "データの分析"],
+        "数学A": ["場合の数と確率", "図形の性質", "整数の性質"],
+        "数学II": ["式と証明", "複素数と方程式", "図形と方程式", "三角関数", "指数・対数関数", "微分・積分"],
+        "数学B": ["数列", "ベクトル"],
+        "数学III": ["複素数平面", "式と曲線", "関数と極限", "微分法", "積分法"]
+    };
+
+    document.getElementById('unit-select').addEventListener('change', (e) => {
+        const unit = e.target.value;
+        const topicSelect = document.getElementById('topic-select');
+        topicSelect.innerHTML = '<option value="" disabled selected>トピックを選択してください</option>';
+        if (topics[unit]) {
+            topics[unit].forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic;
+                option.textContent = topic;
+                topicSelect.appendChild(option);
+            });
+        }
+    });
+
+    // 生成リクエスト処理
+    document.getElementById('generate-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('generate-btn');
+        const spinner = document.getElementById('spinner');
+        const paperPlane = document.getElementById('paper-plane');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressStatus = document.getElementById('progress-status');
+
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        paperPlane.classList.add('d-none');
+        progressContainer.style.display = 'block';
+
+        let progress = 0;
+        const interval = setInterval(() => {
+            if (progress < 90) {
+                progress += Math.random() * 5;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = `${Math.round(progress)}%`;
+                progressBar.textContent = `${Math.round(progress)}%`;
+                
+                if (progress < 30) progressStatus.textContent = "AIが問題を考案中...";
+                else if (progress < 60) progressStatus.textContent = "数式を検証し、図解を生成中...";
+                else progressStatus.textContent = "LaTeXでPDFを構築中...";
+            }
+        }, 2000);
+
+        try {
+            const formData = new FormData(e.target);
+            const response = await fetch('/generate', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100%';
+                progressStatus.textContent = "生成完了！ダウンロードを開始します。";
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const filename = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'math_material.pdf';
+                a.download = filename.replace(/"/g, '');
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } else {
+                throw new Error('生成に失敗しました。');
+            }
+        } catch (error) {
+            clearInterval(interval);
+            alert(error.message);
+        } finally {
+            btn.disabled = false;
+            spinner.classList.add('d-none');
+            paperPlane.classList.remove('d-none');
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}プレビュー - 高校数学教材AI v20{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preview-container {
+        background: #fff;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .problem-box {
+        border-left: 5px solid var(--accent-color);
+        padding-left: 20px;
+        margin-bottom: 40px;
+    }
+    .solution-box {
+        background-color: #fcfcfc;
+        border: 1px solid #eee;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+    .badge-difficulty {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        border-radius: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-eye me-2"></i>生成結果のプレビュー</h2>
+            <div>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-undo me-1"></i>戻る
+                </a>
+                <a href="{{ download_url }}" class="btn btn-primary">
+                    <i class="fas fa-download me-1"></i>PDFをダウンロード
+                </a>
+            </div>
+        </div>
+
+        <div class="preview-container">
+            <div class="mb-4">
+                <span class="badge bg-primary me-2">{{ unit }}</span>
+                <span class="badge bg-secondary me-2">{{ topic }}</span>
+                <span class="badge bg-info text-dark badge-difficulty">難易度: {{ difficulty }}</span>
+            </div>
+
+            <hr>
+
+            {% for problem in problems %}
+            <div class="problem-box">
+                <h5>問題 {{ loop.index }}</h5>
+                <div class="math-content">
+                    {{ problem.problem | safe }}
+                </div>
+                
+                {% if problem.figure_code %}
+                <div class="mt-3 p-3 bg-light border rounded text-center">
+                    <small class="text-muted d-block mb-2"><i class="fas fa-image me-1"></i>TikZ図解コード（PDFでレンダリングされます）</small>
+                    <code>{{ problem.figure_code[:100] }}...</code>
+                </div>
+                {% endif %}
+
+                <div class="solution-box mt-3">
+                    <h6 class="text-muted"><i class="fas fa-key me-1"></i>解答・解説</h6>
+                    <div class="math-content">
+                        {{ problem.solution | safe }}
+                    </div>
+                    <div class="mt-2 fw-bold">
+                        答え: {{ problem.answer_key }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        }
+    };
+</script>
+{% endblock %}
