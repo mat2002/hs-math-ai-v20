@@ -1,0 +1,39 @@
+\documentclass[a4paper,11pt]{jlreq}
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{tikz}
+\usepackage{geometry}
+\geometry{top=20mm,bottom=20mm,left=20mm,right=20mm}
+
+\title{ {{title}} }
+\author{高校数学教材AI v20}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section*{演習問題}
+
+{% for item in problems %}
+\subsection*{問題 {{ loop.index }}}
+{{ item.problem }}
+
+\vspace{20mm} % 解答欄のスペース
+{% endfor %}
+
+\newpage
+\section*{解答・解説}
+
+{% for item in problems %}
+\subsection*{問題 {{ loop.index }} の解答}
+\textbf{【答え】} {{ item.answer_key }}
+
+\vspace{5mm}
+\textbf{【解説】}
+{{ item.solution }}
+
+\vspace{10mm}
+{% endfor %}
+
+\end{document}
