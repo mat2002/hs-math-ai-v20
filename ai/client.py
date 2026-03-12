@@ -8,20 +8,27 @@ def get_openai_client():
     """
     api_key = os.environ.get("OPENAI_API_KEY")
     
-    # Render 等の環境で API キーが設定されていない場合、
-    # エラーを回避するために Manus の環境変数から取得を試みる
     if not api_key:
-        # Manus のサンドボックス環境では通常設定されている
-        api_key = os.environ.get("OPENAI_API_KEY")
-    
-    if not api_key:
-        # それでもない場合は、エラーメッセージを分かりやすくするために例外を投げるか、
-        # あるいはプレースホルダーを返す（Render のビルド時チェック回避のため）
-        # ここでは OpenAI クライアントを初期化する際にキーが必要なので、
-        # 実行時にエラーになるようにするが、インポート時にはエラーにならないようにする。
+        # Render 等の環境で API キーが設定されていない場合、
+        # ビルド時のインポートエラーを避けるためにダミーのキーを返す。
+        # 実際に API を呼び出す際にはエラーになるが、起動は可能になる。
         return OpenAI(api_key="sk-no-key-provided-please-set-env-var")
 
     return OpenAI(api_key=api_key)
 
+# クラスとして定義し、プロパティでアクセスすることで初期化を遅延させる
+class OpenAIClientProxy:
+    def __init__(self):
+        self._client = None
+
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = get_openai_client()
+        return self._client
+
+    def __getattr__(self, name):
+        return getattr(self.client, name)
+
 # シングルトンインスタンス
-client = get_openai_client()
+client = OpenAIClientProxy()

@@ -2,18 +2,13 @@
 FROM python:3.11-slim
 
 # 必要なシステムパッケージのインストール
-# LaTeX (TeX Live) と TikZ に必要なパッケージを追加
+# LaTeX (TeX Live) の最小構成をインストール
 RUN apt-get update && apt-get install -y \
     texlive-latex-base \
-    texlive-latex-extra \
     texlive-fonts-recommended \
-    texlive-fonts-extra \
     texlive-lang-japanese \
-    texlive-pictures \
     ghostscript \
     perl \
-    curl \
-    git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
