@@ -19,6 +19,12 @@
 \subsection*{問題 {{ loop.index }}}
 {{ item.problem }}
 
+{% if item.figure_code %}
+\begin{center}
+{{ item.figure_code }}
+\end{center}
+{% endif %}
+
 \vspace{20mm} % 解答欄のスペース
 {% endfor %}
 
