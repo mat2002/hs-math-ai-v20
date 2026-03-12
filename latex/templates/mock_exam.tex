@@ -1,0 +1,51 @@
+\documentclass[a4paper,11pt]{jlreq}
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{tikz}
+\usepackage{geometry}
+\geometry{top=20mm,bottom=20mm,left=20mm,right=20mm}
+
+\title{ {{title}} }
+\author{高校数学教材AI v20}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{center}
+\textbf{【注意事項】} \\
+1. 問題は全部で {{ problems|length }} 問あります。 \\
+2. 各問題の配点は問題文の末尾に記載されています。
+\end{center}
+
+\section*{問題}
+
+{% for item in problems %}
+\subsection*{第 {{ loop.index }} 問 （{{ item.points }}点）}
+{{ item.problem }}
+
+{% if item.figure_code %}
+\begin{center}
+{{ item.figure_code }}
+\end{center}
+{% endif %}
+
+\vspace{30mm} % 解答欄のスペース
+{% endfor %}
+
+\newpage
+\section*{解答・解説}
+
+{% for item in problems %}
+\subsection*{第 {{ loop.index }} 問 の解答}
+\textbf{【答え】} {{ item.answer_key }}
+
+\vspace{5mm}
+\textbf{【解説】}
+{{ item.solution }}
+
+\vspace{10mm}
+{% endfor %}
+
+\end{document}
