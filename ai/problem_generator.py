@@ -1,12 +1,10 @@
 import os
 import yaml
 import random
-from openai import OpenAI
+from ai.client import client
 from ai.tikz_generator import generate_tikz_code
 from ai.model_config import get_model_config
 from ai.exam_reproduction import build_exam_reproduction_prompt
-
-client = OpenAI()
 
 def generate_problem(topic, difficulty=3, include_figure=True, exam_type="standard", target_exam=None):
     """

@@ -1,10 +1,8 @@
 import os
 import yaml
-from openai import OpenAI
+from ai.client import client
 from ai.tikz_generator import generate_tikz_code
 from ai.model_config import get_model_config
-
-client = OpenAI()
 
 def write_textbook_chapter(topic):
     """

@@ -1,7 +1,5 @@
 import os
-from openai import OpenAI
-
-client = OpenAI()
+from ai.client import client
 
 def generate_tikz_code(topic, problem_text):
     """
