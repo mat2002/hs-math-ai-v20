@@ -1,0 +1,48 @@
+\documentclass[a4paper,11pt,oneside]{jlreq}
+
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+
+% 定義・定理のスタイル設定
+\newtcolorbox{definitionbox}[1]{
+  colback=blue!5!white, colframe=blue!75!black, fonttitle=\bfseries,
+  title=定義：#1, breakable
+}
+\newtcolorbox{theorembox}[1]{
+  colback=red!5!white, colframe=red!75!black, fonttitle=\bfseries,
+  title=定理：#1, breakable
+}
+\newtcolorbox{examplebox}[1]{
+  colback=green!5!white, colframe=green!75!black, fonttitle=\bfseries,
+  title=例題：#1, breakable
+}
+
+\title{ {{title}} }
+\author{高校数学教材AI v20}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+{% for chapter in chapters %}
+\chapter{ {{chapter.title}} }
+
+{% for section in chapter.sections %}
+\section{ {{section.title}} }
+{{ section.content }}
+
+{% if section.figure_code %}
+\begin{center}
+{{ section.figure_code }}
+\end{center}
+{% endif %}
+
+{% endfor %}
+{% endfor %}
+
+\end{document}
