@@ -12,6 +12,7 @@
         .header { text-align: center; margin-bottom: 30px; }
         .btn-primary { background-color: #2c3e50; border: none; }
         .btn-primary:hover { background-color: #34495e; }
+        #progress-container { display: none; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -22,7 +23,7 @@
         </div>
 
         <div class="card p-4">
-            <form action="/generate" method="POST">
+            <form id="generate-form">
                 <div class="mb-3">
                     <label for="unit" class="form-label">単元を選択</label>
                     <select class="form-select" id="unit" name="unit">
@@ -72,14 +73,93 @@
                 </div>
 
                 <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg">教材を生成する</button>
+                    <button type="submit" id="submit-btn" class="btn btn-primary btn-lg">教材を生成する</button>
                 </div>
             </form>
+
+            <div id="progress-container">
+                <hr>
+                <p id="status-text" class="text-center fw-bold">生成準備中...</p>
+                <div class="progress" role="progressbar" aria-label="Generation progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%">0%</div>
+                </div>
+            </div>
         </div>
 
         <footer class="mt-5 text-center text-muted">
             <p>&copy; 2026 高校数学教材AI v20 Platform</p>
         </footer>
     </div>
+
+    <script>
+        document.getElementById('generate-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const submitBtn = document.getElementById('submit-btn');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const statusText = document.getElementById('status-text');
+
+            // UIのリセット
+            submitBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.innerText = '0%';
+            statusText.innerText = '生成を開始しています...';
+
+            try {
+                // 実際の生成リクエスト（簡略化のため、ここでは直接PDFをリクエストし、
+                // サーバー側で生成完了後にダウンロードさせる。
+                // 進捗のリアルタイム表示には別途SSE等の実装が必要だが、
+                // まずはUI上のアニメーションで対応）
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    if (progress < 90) {
+                        progress += Math.random() * 10;
+                        if (progress > 90) progress = 90;
+                        progressBar.style.width = `${Math.round(progress)}%`;
+                        progressBar.innerText = `${Math.round(progress)}%`;
+                        
+                        if (progress < 30) statusText.innerText = 'AIが問題を考案中...';
+                        else if (progress < 60) statusText.innerText = '数式を検証し、図解を生成中...';
+                        else statusText.innerText = 'LaTeXでPDFを構築中...';
+                    }
+                }, 1500);
+
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                clearInterval(interval);
+
+                if (response.ok) {
+                    progressBar.style.width = '100%';
+                    progressBar.innerText = '100%';
+                    statusText.innerText = '生成完了！ダウンロードを開始します。';
+                    
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'document.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } else {
+                    statusText.innerText = 'エラーが発生しました。';
+                    statusText.classList.add('text-danger');
+                }
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = '通信エラーが発生しました。';
+                statusText.classList.add('text-danger');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>

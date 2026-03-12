@@ -49,7 +49,10 @@ def generate():
         pdf_path = generate_worksheet_pdf(title, problems, output_filename)
 
     if pdf_path and os.path.exists(pdf_path):
-        return send_file(pdf_path, as_attachment=True)
+        # ファイル名をヘッダーに含めて返す
+        response = send_file(pdf_path, as_attachment=True)
+        response.headers["Content-Disposition"] = f"attachment; filename={output_filename}"
+        return response
     else:
         return "PDFの生成に失敗しました。サーバーのLaTeX環境を確認してください。", 500
 
