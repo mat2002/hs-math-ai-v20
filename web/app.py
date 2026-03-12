@@ -1,39 +1,46 @@
-from flask import Flask, render_template_string
+import os
+import sys
+from flask import Flask, render_template, request, send_file, redirect, url_for
+
+# プロジェクトルートをパスに追加
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from ai.problem_generator import generate_problem
+from generator.worksheet_generator import generate_worksheet_pdf
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template_string('''
-    <!DOCTYPE html>
-    <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <title>高校数学教材AI v20 - Web UI</title>
-        <style>
-            body { font-family: sans-serif; margin: 40px; line-height: 1.6; }
-            .container { max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
-            h1 { color: #2c3e50; }
-            .status { color: green; font-weight: bold; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>高校数学教材AI v20</h1>
-            <p>Web UI サーバーが正常に起動しました。</p>
-            <p class="status">ステータス: 稼働中</p>
-            <hr>
-            <h3>教材生成メニュー</h3>
-            <ul>
-                <li>演習プリント生成</li>
-                <li>小テスト生成</li>
-                <li>模試生成</li>
-                <li>教科書生成</li>
-            </ul>
-        </div>
-    </body>
-    </html>
-    ''')
+    return render_template('index.html')
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    # フォームデータの取得
+    unit = request.form.get('unit')
+    difficulty = int(request.form.get('difficulty', 3))
+    num_problems = int(request.form.get('num_problems', 5))
+    doc_type = request.form.get('type', 'worksheet')
+
+    # 問題の生成
+    problems = []
+    for _ in range(num_problems):
+        p = generate_problem(unit, difficulty)
+        if p:
+            problems.append(p)
+    
+    if not problems:
+        return "問題の生成に失敗しました。APIキーの設定を確認してください。", 500
+
+    # PDFの生成
+    title = f"{unit} 演習プリント (難易度:{difficulty})"
+    output_filename = f"{doc_type}_{unit}.pdf"
+    pdf_path = generate_worksheet_pdf(title, problems, output_filename)
+
+    if pdf_path and os.path.exists(pdf_path):
+        return send_file(pdf_path, as_attachment=True)
+    else:
+        return "PDFの生成に失敗しました。サーバーのLaTeX環境を確認してください。", 500
 
 if __name__ == '__main__':
     # 外部からのアクセスを許可するため 0.0.0.0 で起動
