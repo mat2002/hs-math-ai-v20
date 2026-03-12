@@ -1,23 +1,32 @@
 import os
 import yaml
+import random
 from openai import OpenAI
 from ai.tikz_generator import generate_tikz_code
 from ai.model_config import get_model_config
 
 client = OpenAI()
 
-def generate_problem(topic, difficulty=3, include_figure=True):
+def generate_problem(topic, difficulty=3, include_figure=True, exam_type="standard"):
     """
-    高校数学の問題を生成し、必要に応じてTikZ図も生成する。
-    Chain-of-Thought プロンプトにより精度を向上。
+    高校数学の問題を生成する。
+    exam_type: "standard" (標準), "common_test" (共通テスト形式), "hard" (難関大形式)
     """
     model_name, params = get_model_config("problem_gen")
+    
+    # 入試傾向に応じたプロンプトの調整
+    exam_context = {
+        "standard": "教科書の章末問題レベルの標準的な問題を作成してください。",
+        "common_test": "大学入学共通テスト形式で、太郎さんと花子さんの会話や、日常生活の事象を数学的にモデル化する問題を含めてください。誘導形式（穴埋め）を意識した構成にしてください。",
+        "hard": "難関国立大学の二次試験レベルの問題を作成してください。複数の分野を融合させ、高い思考力を要求する記述式問題にしてください。"
+    }
     
     prompt = f"""
 高校数学の問題を作成してください。
 
-単元: {topic}
+単元・トピック: {topic}
 難易度: {difficulty} (1:基礎, 3:標準, 5:発展)
+形式: {exam_context.get(exam_type, exam_context["standard"])}
 
 【思考プロセス】
 1. まず、この単元と難易度にふさわしい数学的概念を特定してください。
@@ -34,6 +43,7 @@ solution: |
 difficulty: {difficulty}
 answer_key: (最終的な答えのみを簡潔に記述してください)
 needs_figure: (図解が必要な場合は true、不要な場合は false)
+exam_type: "{exam_type}"
 ---
 """
     
@@ -68,5 +78,5 @@ needs_figure: (図解が必要な場合は true、不要な場合は false)
 
 if __name__ == "__main__":
     # テスト実行
-    result = generate_problem("2次関数の最大・最小", difficulty=3)
+    result = generate_problem("2次関数の最大・最小", difficulty=4, exam_type="common_test")
     print(yaml.dump(result, allow_unicode=True))
