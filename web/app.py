@@ -6,7 +6,9 @@ from flask import Flask, render_template, request, send_file, redirect, url_for
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ai.problem_generator import generate_problem
+from ai.textbook_writer import write_textbook_chapter
 from generator.worksheet_generator import generate_worksheet_pdf
+from generator.textbook_generator import generate_textbook_pdf
 
 app = Flask(__name__)
 
@@ -22,20 +24,29 @@ def generate():
     num_problems = int(request.form.get('num_problems', 5))
     doc_type = request.form.get('type', 'worksheet')
 
-    # 問題の生成
-    problems = []
-    for _ in range(num_problems):
-        p = generate_problem(unit, difficulty)
-        if p:
-            problems.append(p)
-    
-    if not problems:
-        return "問題の生成に失敗しました。APIキーの設定を確認してください。", 500
+    if doc_type == 'textbook':
+        # 教科書の生成
+        chapter_data = write_textbook_chapter(unit)
+        if not chapter_data:
+            return "教科書の執筆に失敗しました。APIキーの設定を確認してください。", 500
+        
+        title = f"高校数学 教科書: {unit}"
+        output_filename = f"textbook_{unit}.pdf"
+        pdf_path = generate_textbook_pdf(title, [chapter_data], output_filename)
+    else:
+        # 演習プリント・小テストの生成
+        problems = []
+        for _ in range(num_problems):
+            p = generate_problem(unit, difficulty)
+            if p:
+                problems.append(p)
+        
+        if not problems:
+            return "問題の生成に失敗しました。APIキーの設定を確認してください。", 500
 
-    # PDFの生成
-    title = f"{unit} 演習プリント (難易度:{difficulty})"
-    output_filename = f"{doc_type}_{unit}.pdf"
-    pdf_path = generate_worksheet_pdf(title, problems, output_filename)
+        title = f"{unit} {'小テスト' if doc_type == 'exam' else '演習プリント'} (難易度:{difficulty})"
+        output_filename = f"{doc_type}_{unit}.pdf"
+        pdf_path = generate_worksheet_pdf(title, problems, output_filename)
 
     if pdf_path and os.path.exists(pdf_path):
         return send_file(pdf_path, as_attachment=True)
