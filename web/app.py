@@ -121,6 +121,17 @@ def generate():
         output_filename = f"mock_exam_{unit}_{random.randint(1000,9999)}.pdf"
         pdf_path = generate_mock_exam_pdf(title, problems, output_filename)
 
+    elif doc_type == 'reproduction':
+        target_exam = request.form.get('target_exam', '共通テスト')
+        problems = []
+        for _ in range(num_problems):
+            p = generate_problem(unit, difficulty, exam_type='reproduction', target_exam=target_exam)
+            if p: problems.append(p)
+        if not problems: return "問題の生成に失敗しました。", 500
+        title = f"{target_exam} 再現問題: {unit}"
+        output_filename = f"repro_{target_exam}_{unit}_{random.randint(1000,9999)}.pdf"
+        pdf_path = generate_worksheet_pdf(title, problems, output_filename)
+
     else:
         problems = []
         for _ in range(num_problems):

@@ -4,24 +4,29 @@ import random
 from openai import OpenAI
 from ai.tikz_generator import generate_tikz_code
 from ai.model_config import get_model_config
+from ai.exam_reproduction import build_exam_reproduction_prompt
 
 client = OpenAI()
 
-def generate_problem(topic, difficulty=3, include_figure=True, exam_type="standard"):
+def generate_problem(topic, difficulty=3, include_figure=True, exam_type="standard", target_exam=None):
     """
     高校数学の問題を生成する。
-    exam_type: "standard" (標準), "common_test" (共通テスト形式), "hard" (難関大形式)
+    exam_type: "standard", "common_test", "hard", "reproduction" (入試再現)
+    target_exam: "東京大学", "京都大学" など (exam_type="reproduction" の場合)
     """
     model_name, params = get_model_config("problem_gen")
     
-    # 入試傾向に応じたプロンプトの調整
-    exam_context = {
-        "standard": "教科書の章末問題レベルの標準的な問題を作成してください。",
-        "common_test": "大学入学共通テスト形式で、太郎さんと花子さんの会話や、日常生活の事象を数学的にモデル化する問題を含めてください。誘導形式（穴埋め）を意識した構成にしてください。",
-        "hard": "難関国立大学の二次試験レベルの問題を作成してください。複数の分野を融合させ、高い思考力を要求する記述式問題にしてください。"
-    }
-    
-    prompt = f"""
+    if exam_type == "reproduction" and target_exam:
+        prompt = build_exam_reproduction_prompt(target_exam, topic)
+    else:
+        # 従来のプロンプト構築
+        exam_context = {
+            "standard": "教科書の章末問題レベルの標準的な問題を作成してください。",
+            "common_test": "大学入学共通テスト形式で、太郎さんと花子さんの会話や、日常生活の事象を数学的にモデル化する問題を含めてください。誘導形式（穴埋め）を意識した構成にしてください。",
+            "hard": "難関国立大学の二次試験レベルの問題を作成してください。複数の分野を融合させ、高い思考力を要求する記述式問題にしてください。"
+        }
+        
+        prompt = f"""
 高校数学の問題を作成してください。
 
 単元・トピック: {topic}
@@ -75,8 +80,3 @@ exam_type: "{exam_type}"
     except Exception as e:
         print(f"Error generating problem: {e}")
         return None
-
-if __name__ == "__main__":
-    # テスト実行
-    result = generate_problem("2次関数の最大・最小", difficulty=4, exam_type="common_test")
-    print(yaml.dump(result, allow_unicode=True))

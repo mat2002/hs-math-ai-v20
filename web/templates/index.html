@@ -78,8 +78,26 @@
                             <h6>模試形式</h6>
                         </div>
                     </div>
+                    <div class="col-md-3">
+                        <div class="card type-card" data-type="reproduction">
+                            <i class="fas fa-university type-icon"></i>
+                            <h6>入試再現</h6>
+                        </div>
+                    </div>
                 </div>
                 <input type="hidden" name="type" id="doc_type" value="worksheet">
+            </div>
+
+            <!-- 大学選択（入試再現モードのみ表示） -->
+            <div id="exam-selection" class="form-section" style="display: none;">
+                <label class="form-label">1.5 再現する大学を選択</label>
+                <select class="form-select" name="target_exam">
+                    <option value="共通テスト">共通テスト</option>
+                    <option value="東京大学">東京大学</option>
+                    <option value="京都大学">京都大学</option>
+                    <option value="早稲田大学（理工）">早稲田大学（理工）</option>
+                    <option value="慶應義塾大学（理工）">慶應義塾大学（理工）</option>
+                </select>
             </div>
 
             <!-- 単元・トピックの選択 -->
@@ -148,7 +166,16 @@
         card.addEventListener('click', () => {
             document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
             card.classList.add('active');
-            document.getElementById('doc_type').value = card.dataset.type;
+            const type = card.dataset.type;
+            document.getElementById('doc_type').value = type;
+            
+            // 入試再現モードの場合のみ大学選択を表示
+            const examSelection = document.getElementById('exam-selection');
+            if (type === 'reproduction') {
+                examSelection.style.display = 'block';
+            } else {
+                examSelection.style.display = 'none';
+            }
         });
     });
 
