@@ -2,18 +2,27 @@ import os
 import yaml
 from openai import OpenAI
 from ai.tikz_generator import generate_tikz_code
+from ai.model_config import get_model_config
 
 client = OpenAI()
 
 def generate_problem(topic, difficulty=3, include_figure=True):
     """
     高校数学の問題を生成し、必要に応じてTikZ図も生成する。
+    Chain-of-Thought プロンプトにより精度を向上。
     """
+    model_name, params = get_model_config("problem_gen")
+    
     prompt = f"""
 高校数学の問題を作成してください。
 
 単元: {topic}
 難易度: {difficulty} (1:基礎, 3:標準, 5:発展)
+
+【思考プロセス】
+1. まず、この単元と難易度にふさわしい数学的概念を特定してください。
+2. 次に、その概念を用いた具体的な数値を設定し、解がきれいになるように調整してください。
+3. 最後に、問題文、解答、解説をLaTeX形式で構成してください。
 
 出力形式は以下のYAML形式のみとしてください。余計な解説文は含めないでください。
 
@@ -21,7 +30,7 @@ def generate_problem(topic, difficulty=3, include_figure=True):
 problem: |
   (問題文をLaTeX形式で記述してください。数式は $...$ または $$...$$ で囲んでください)
 solution: |
-  (解答と解説をLaTeX形式で記述してください)
+  (解答と解説をLaTeX形式で記述してください。解法の手順を論理的に説明してください)
 difficulty: {difficulty}
 answer_key: (最終的な答えのみを簡潔に記述してください)
 needs_figure: (図解が必要な場合は true、不要な場合は false)
@@ -30,12 +39,12 @@ needs_figure: (図解が必要な場合は true、不要な場合は false)
     
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=model_name,
             messages=[
                 {"role": "system", "content": "あなたは高校数学の教材作成の専門家です。正確なLaTeX数式と論理的な解説を提供します。"},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7
+            **params
         )
         
         content = response.choices[0].message.content
