@@ -1,6 +1,7 @@
 import os
-import subprocess
+import shutil
 from jinja2 import Environment, FileSystemLoader
+from generator.pdf_engine import compile_latex_to_pdf
 
 def generate_worksheet_pdf(title, problems, output_filename="worksheet.pdf"):
     """
@@ -19,33 +20,24 @@ def generate_worksheet_pdf(title, problems, output_filename="worksheet.pdf"):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
         
-    tex_path = os.path.join(output_dir, "temp_worksheet.tex")
-    pdf_path = os.path.join(output_dir, output_filename)
+    tex_path = os.path.join(output_dir, output_filename.replace('.pdf', '.tex'))
 
     # .texファイルの書き出し
     with open(tex_path, "w", encoding="utf-8") as f:
         f.write(latex_content)
 
-    # LaTeXコンパイル (lualatexを使用)
-    # Render環境ではTeX Liveがインストールされている必要があります
-    try:
-        # 2回実行して相互参照を解決
-        for _ in range(2):
-            subprocess.run(
-                ["lualatex", "-interaction=nonstopmode", "-output-directory", output_dir, tex_path],
-                check=True,
-                capture_output=True
-            )
-        
-        # 中間ファイルの削除
-        for ext in [".aux", ".log", ".tex"]:
-            temp_file = os.path.join(output_dir, "temp_worksheet" + ext)
+    # PDF生成エンジンを使用してコンパイル
+    pdf_path = compile_latex_to_pdf(tex_path, output_dir)
+
+    if pdf_path:
+        # 中間ファイルを削除
+        for ext in [".aux", ".log", ".dvi", ".tex"]:
+            temp_file = tex_path.replace('.tex', ext)
             if os.path.exists(temp_file):
                 os.remove(temp_file)
-                
         return pdf_path
-    except Exception as e:
-        print(f"Error compiling LaTeX: {e}")
+    else:
+        print(f"Error: PDF generation failed for {tex_path}")
         return None
 
 if __name__ == "__main__":

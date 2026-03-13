@@ -9,3 +9,4 @@ tqdm
 gunicorn
 Flask-Login
 python-dotenv
+Werkzeug
