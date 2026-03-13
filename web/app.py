@@ -22,6 +22,21 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key')
 # データベース初期化
 init_db()
 
+# 管理者アカウントの自動作成 (mat2002)
+from werkzeug.security import generate_password_hash
+def ensure_admin():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    username = "mat2002"
+    password = "math2026"
+    password_hash = generate_password_hash(password)
+    cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+    if not cursor.fetchone():
+        cursor.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (username, password_hash))
+        conn.commit()
+    conn.close()
+ensure_admin()
+
 # Flask-Login 設定
 login_manager = LoginManager()
 login_manager.init_app(app)
