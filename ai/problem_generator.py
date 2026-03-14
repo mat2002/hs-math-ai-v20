@@ -31,6 +31,10 @@ def generate_problem(topic, difficulty=3, include_figure=True, exam_type="standa
 難易度: {difficulty} (1:基礎, 3:標準, 5:発展)
 形式: {exam_context.get(exam_type, exam_context["standard"])}
 
+※単元・トピックが「数学C」の場合、以下の内容を考慮してください。
+  - 平面上のベクトル、空間のベクトル、複素数平面、2次曲線（放物線、楕円、双曲線）などが含まれます。
+  - これらの概念を適切に組み合わせて問題を作成してください。
+
 【思考プロセス】
 1. まず、この単元と難易度にふさわしい数学的概念を特定してください。
 2. 次に、その概念を用いた具体的な数値を設定し、解がきれいになるように調整してください。
