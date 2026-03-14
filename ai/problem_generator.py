@@ -41,6 +41,7 @@ def generate_problem(topic, difficulty=3, include_figure=True, exam_type="standa
 3. 最後に、問題文、解答、解説をLaTeX形式で構成してください。
 
 出力形式は以下のYAML形式のみとしてください。余計な解説文は含めないでください。
+**重要**: YAMLの文字列内でバックスラッシュ `\` を使用する場合は、必ず二重にエスケープ `\\` するか、またはリテラルスタイル `|` を使用してください。特に `answer_key` はLaTeX形式ではなく、プレーンテキストで記述してください。
 
 ---
 problem: |
@@ -48,7 +49,7 @@ problem: |
 solution: |
   (解答と解説をLaTeX形式で記述してください。解法の手順を論理的に説明してください)
 difficulty: {difficulty}
-answer_key: (最終的な答えのみを簡潔に記述してください)
+answer_key: (最終的な答えのみをプレーンテキストで簡潔に記述してください。LaTeX形式は使用しないでください)
 needs_figure: (図解が必要な場合は true、不要な場合は false)
 exam_type: "{exam_type}"
 ---
@@ -70,7 +71,19 @@ exam_type: "{exam_type}"
         else:
             yaml_content = content.replace("```yaml", "").replace("```", "")
             
-        data = yaml.safe_load(yaml_content)
+        # YAMLパース前に、AIの出力に含まれる可能性のある不正なエスケープシーケンスを処理
+        # 特にWindows環境でのパス区切り文字や、LaTeXのコマンドと誤解される文字を考慮
+        # ここでは、YAMLの仕様に厳密に従うよう、AIの出力形式を調整する
+        # ただし、AIが生成する内容に依存するため、完全な解決は難しい場合がある
+        # 一時的な回避策として、二重引用符内のバックスラッシュをエスケープする
+        # yaml_content = yaml_content.replace('\\', '\\\\') # これはYAMLパーサーが自動で処理すべき
+        
+        try:
+            data = yaml.safe_load(yaml_content)
+        except yaml.YAMLError as ye:
+            print(f"YAML parsing error: {ye}")
+            raise ValueError(f"AI生成データのYAMLパースに失敗しました: {ye}")
+
         
         # 図の生成が必要な場合
         if include_figure and data.get("needs_figure"):

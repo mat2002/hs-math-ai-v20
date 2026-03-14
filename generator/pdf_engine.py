@@ -18,7 +18,7 @@ def compile_latex_to_pdf(latex_file_path, output_dir):
         target_tex = os.path.basename(latex_file_path)
         subprocess.run(
             ["uplatex", "-interaction=nonstopmode", target_tex],
-            check=True, capture_output=True, text=True
+            check=True, capture_output=True, text=True, encoding=\'utf-8\'
         )
     except subprocess.CalledProcessError as e:
         print(f"uplatex compilation failed for {latex_file_path}")
@@ -40,7 +40,7 @@ def compile_latex_to_pdf(latex_file_path, output_dir):
         target_dvi = f"{base_name}.dvi"
         subprocess.run(
             ["dvipdfmx", target_dvi],
-            check=True, capture_output=True, text=True
+            check=True, capture_output=True, text=True, encoding=\'utf-8\'
         )
     except subprocess.CalledProcessError as e:
         print(f"dvipdfmx compilation failed for {dvi_file_path}")
