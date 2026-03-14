@@ -48,7 +48,7 @@ def compile_latex_to_pdf(latex_file_path, output_dir):
 
 if __name__ == "__main__":
     # テスト用のLaTeXファイルを作成
-    test_latex_content = """
+    test_latex_content = r"""
     \documentclass[uplatex,dvipdfmx]{jsarticle}
     \usepackage{amsmath}
     \usepackage{tikz}
