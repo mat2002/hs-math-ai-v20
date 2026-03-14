@@ -161,8 +161,12 @@ def generate():
         # 生成履歴を保存
         save_generation_history(current_user.id, doc_type, unit, difficulty, output_filename)
         
+        # Windows環境での日本語ファイル名による UnicodeEncodeError を回避するため、
+        # ダウンロード時のファイル名を英数字のみに変更します。
+        safe_filename = f"math_ai_{random.randint(1000,9999)}.pdf"
+        
         response = send_file(pdf_path, as_attachment=True)
-        response.headers["Content-Disposition"] = f"attachment; filename={output_filename}"
+        response.headers["Content-Disposition"] = f"attachment; filename={safe_filename}"
         return response
     else:
         return "PDFの生成に失敗しました。", 500
