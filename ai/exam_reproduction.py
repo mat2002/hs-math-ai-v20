@@ -23,6 +23,19 @@ def build_exam_reproduction_prompt(exam_name, topic):
 3. 解説は、その大学の受験生が求める論理的レベル（厳密さや計算の工夫）に合わせて記述してください。
 4. 図解が必要な場合は、TikZで描画可能な情報を `needs_figure: true` として含めてください。
 
-出力は以前と同様のYAML形式で行ってください。
+出力形式は以下のYAML形式のみとしてください。余計な解説文は含めないでください。
+**重要**: YAMLの文字列内でバックスラッシュ `\` を使用する場合は、必ず二重にエスケープ `\\` するか、またはリテラルスタイル `|` を使用してください。特に `answer_key` はLaTeX形式ではなく、プレーンテキストで記述してください。
+
+---
+problem: |
+  (問題文をLaTeX形式で記述してください。数式は $...$ または $$...$$ で囲んでください)
+solution: |
+  (解答と解説をLaTeX形式で記述してください。解法の手順を論理的に説明してください)
+difficulty: {profile['difficulty']}
+answer_key: (最終的な答えのみをプレーンテキストで簡潔に記述してください。LaTeX形式は使用しないでください)
+needs_figure: (図解が必要な場合は true、不要な場合は false)
+exam_type: "reproduction"
+target_exam: "{exam_name}"
+---
 """
     return prompt
