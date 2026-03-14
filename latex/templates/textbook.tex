@@ -1,4 +1,4 @@
-\documentclass[uplatex,dvipdfmx,a4paper,11pt,oneside,report]{jlreq}
+\documentclass[uplatex,dvipdfmx,a4paper,11pt,oneside,article]{jlreq}
 
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
 \usepackage{tikz}
@@ -34,10 +34,10 @@
 \newpage
 
 {% for chapter in chapters %}
-\chapter{ {{chapter.title}} }
+\section{ {{chapter.title}} }
 
 {% for section in chapter.sections %}
-\section{ {{section.title}} }
+\subsection{ {{section.title}} }
 {{ section.content }}
 
 {% if section.figure_code %}

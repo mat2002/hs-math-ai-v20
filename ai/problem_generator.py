@@ -1,6 +1,7 @@
 import os
 import yaml
 import random
+import re
 from ai.client import client
 from ai.tikz_generator import generate_tikz_code
 from ai.model_config import get_model_config
@@ -66,24 +67,47 @@ exam_type: "{exam_type}"
         )
         
         content = response.choices[0].message.content
-        if "---" in content:
-            yaml_content = content.split("---")[1]
-        else:
-            yaml_content = content.replace("```yaml", "").replace("```", "")
-            
-        # YAMLパース前に、AIの出力に含まれる可能性のある不正なエスケープシーケンスを処理
-        # 特にWindows環境でのパス区切り文字や、LaTeXのコマンドと誤解される文字を考慮
-        # ここでは、YAMLの仕様に厳密に従うよう、AIの出力形式を調整する
-        # ただし、AIが生成する内容に依存するため、完全な解決は難しい場合がある
-        # 一時的な回避策として、二重引用符内のバックスラッシュをエスケープする
-        # yaml_content = yaml_content.replace('\\', '\\\\') # これはYAMLパーサーが自動で処理すべき
         
+        # YAMLパースエラーを回避するための堅牢な抽出処理
+        data = {}
+        
+        # 1. problem の抽出
+        problem_match = re.search(r'problem:\s*\|\s*\n(.*?)(?=\n\w+:|---|$)', content, re.DOTALL)
+        if problem_match:
+            data['problem'] = problem_match.group(1).strip()
+        
+        # 2. solution の抽出
+        solution_match = re.search(r'solution:\s*\|\s*\n(.*?)(?=\n\w+:|---|$)', content, re.DOTALL)
+        if solution_match:
+            data['solution'] = solution_match.group(1).strip()
+            
+        # 3. その他のフィールドをYAMLとしてパース（フォールバック）
         try:
-            data = yaml.safe_load(yaml_content)
-        except yaml.YAMLError as ye:
-            print(f"YAML parsing error: {ye}")
-            raise ValueError(f"AI生成データのYAMLパースに失敗しました: {ye}")
+            if "---" in content:
+                yaml_content = content.split("---")[1]
+            else:
+                yaml_content = content.replace("```yaml", "").replace("```", "")
+            
+            yaml_data = yaml.safe_load(yaml_content)
+            if isinstance(yaml_data, dict):
+                # 正規表現で抽出できなかった場合のみYAMLデータを使用
+                for key in ['difficulty', 'answer_key', 'needs_figure', 'exam_type']:
+                    if key in yaml_data:
+                        data[key] = yaml_data[key]
+                if 'problem' not in data and 'problem' in yaml_data:
+                    data['problem'] = yaml_data['problem']
+                if 'solution' not in data and 'solution' in yaml_data:
+                    data['solution'] = yaml_data['solution']
+        except Exception as ye:
+            print(f"YAML fallback parsing error: {ye}")
+            # YAMLパースに失敗しても、正規表現で抽出できていれば続行
+            if 'problem' not in data:
+                raise ValueError(f"AI生成データのパースに失敗しました。")
 
+        # デフォルト値の設定
+        data.setdefault('difficulty', difficulty)
+        data.setdefault('needs_figure', False)
+        data.setdefault('exam_type', exam_type)
         
         # 図の生成が必要な場合
         if include_figure and data.get("needs_figure"):
