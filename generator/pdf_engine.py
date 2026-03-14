@@ -10,16 +10,24 @@ def compile_latex_to_pdf(latex_file_path, output_dir):
     base_name = os.path.splitext(os.path.basename(latex_file_path))[0]
     
     # uplatex で DVI を生成
+    # Windows環境での日本語ファイル名による文字化けを避けるため、作業ディレクトリを移動して実行
+    cwd = os.getcwd()
+    os.chdir(output_dir)
     try:
+        # ファイル名のみを渡す
+        target_tex = os.path.basename(latex_file_path)
         subprocess.run(
-            ["uplatex", "-interaction=nonstopmode", f"-output-directory={output_dir}", latex_file_path],
+            ["uplatex", "-interaction=nonstopmode", target_tex],
             check=True, capture_output=True, text=True
         )
     except subprocess.CalledProcessError as e:
         print(f"uplatex compilation failed for {latex_file_path}")
         print(f"Stdout: {e.stdout}")
         print(f"Stderr: {e.stderr}")
+        os.chdir(cwd)
         return None
+    finally:
+        os.chdir(cwd)
 
     dvi_file_path = os.path.join(output_dir, f"{base_name}.dvi")
     if not os.path.exists(dvi_file_path):
@@ -27,16 +35,21 @@ def compile_latex_to_pdf(latex_file_path, output_dir):
         return None
 
     # dvipdfmx で PDF を生成
+    os.chdir(output_dir)
     try:
+        target_dvi = f"{base_name}.dvi"
         subprocess.run(
-            ["dvipdfmx", "-o", os.path.join(output_dir, f"{base_name}.pdf"), dvi_file_path],
+            ["dvipdfmx", target_dvi],
             check=True, capture_output=True, text=True
         )
     except subprocess.CalledProcessError as e:
         print(f"dvipdfmx compilation failed for {dvi_file_path}")
         print(f"Stdout: {e.stdout}")
         print(f"Stderr: {e.stderr}")
+        os.chdir(cwd)
         return None
+    finally:
+        os.chdir(cwd)
 
     pdf_file_path = os.path.join(output_dir, f"{base_name}.pdf")
     if os.path.exists(pdf_file_path):
