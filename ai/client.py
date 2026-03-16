@@ -4,15 +4,12 @@ from openai import OpenAI
 def get_openai_client():
     """
     OpenAI クライアントを取得する。
-    環境変数 OPENAI_API_KEY が設定されていない場合は、Manus のデフォルトキーを使用する。
+    環境変数 OPENAI_API_KEY が設定されていない場合はエラーを発生させる。
     """
     api_key = os.environ.get("OPENAI_API_KEY")
     
-    if not api_key:
-        # Render 等の環境で API キーが設定されていない場合、
-        # ビルド時のインポートエラーを避けるためにダミーのキーを返す。
-        # 実際に API を呼び出す際にはエラーになるが、起動は可能になる。
-        return OpenAI(api_key="sk-no-key-provided-please-set-env-var")
+    if not api_key or api_key == "sk-no-key-provided-please-set-env-var":
+        raise ValueError("OPENAI_API_KEY 環境変数が設定されていません。有効なAPIキーを設定してください。")
 
     return OpenAI(api_key=api_key)
 
