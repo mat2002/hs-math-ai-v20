@@ -31,7 +31,7 @@ def analyze_pdf_and_generate_latex(pdf_path: str) -> str:
                     {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": "以下の画像は高校数学の教材の1ページです。このページの内容を再現するLaTeXコードを生成してください。数式はLaTeXの数式モードで記述し、図形はTikZで記述してください。日本語はUTF-8で記述してください。完全なLaTeXドキュメントではなく、このページの内容を表す部分的なコード（\section, \subsection, \begin{problem}, \begin{solution} など）のみを生成してください。"},
+                            {"type": "text", "text": "以下の画像は高校数学の教材の1ページです。このページの内容を再現するLaTeXコードを生成してください。数式はLaTeXの数式モードで記述し、図形はTikZで記述してください。日本語はUTF-8で記述してください。完全なLaTeXドキュメントではなく、このページの内容を表す部分的なコード（\\section, \\subsection, \\begin{problem}, \\begin{solution} など）のみを生成してください。"},
                             {
                                 "type": "image_url",
                                 "image_url": {
