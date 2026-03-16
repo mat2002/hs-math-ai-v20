@@ -31,7 +31,7 @@ def generate_worksheet_pdf(title, problems, output_filename="worksheet.pdf"):
 
     if pdf_path:
         # 中間ファイルを削除
-        for ext in [".aux", ".log", ".dvi", ".tex"]:
+        for ext in [".aux", ".log", ".dvi"]:
             temp_file = tex_path.replace('.tex', ext)
             if os.path.exists(temp_file):
                 os.remove(temp_file)

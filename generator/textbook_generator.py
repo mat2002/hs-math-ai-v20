@@ -31,7 +31,7 @@ def generate_textbook_pdf(title, chapters, output_filename="textbook.pdf"):
 
     if pdf_path:
         # 中間ファイルを削除
-        for ext in [".aux", ".log", ".dvi", ".tex", ".toc"]:
+        for ext in [".aux", ".log", ".dvi", ".toc"]:
             temp_file = tex_path.replace('.tex', ext)
             if os.path.exists(temp_file):
                 os.remove(temp_file)

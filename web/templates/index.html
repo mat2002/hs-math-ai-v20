@@ -41,6 +41,10 @@
         display: none;
         margin-top: 30px;
     }
+    #convert-progress-container {
+        display: none;
+        margin-top: 30px;
+    }
 </style>
 {% endblock %}
 
@@ -156,6 +160,38 @@
             </div>
             <p class="text-muted small">AIが問題を考案し、LaTeXでPDFを構築しています。これには1〜2分かかる場合があります。</p>
         </div>
+
+        <!-- PDF変換セクション -->
+        <div class="form-section" style="margin-top: 50px; border-top: 2px solid #e0e0e0; padding-top: 30px;">
+            <h3 class="mb-4 text-center"><i class="fas fa-file-pdf me-2"></i>PDFからLaTeXに変換</h3>
+            <p class="text-center text-muted mb-4">既存のPDFファイルをアップロードして、編集可能なLaTeXソースコードに変換します。</p>
+            
+            <form id="pdf-convert-form">
+                <div class="form-section">
+                    <label class="form-label">PDFファイルを選択</label>
+                    <div class="mb-3">
+                        <input type="file" class="form-control" id="pdf-file" name="pdf_file" accept=".pdf" required>
+                        <small class="text-muted d-block mt-2">サポート形式: PDF (最大50MB)</small>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button type="submit" class="btn btn-success btn-lg px-5" id="convert-btn">
+                        <i class="fas fa-cog fa-spin me-2 d-none" id="convert-spinner"></i>
+                        <i class="fas fa-exchange-alt me-2" id="exchange-icon"></i>LaTeXに変換
+                    </button>
+                </div>
+            </form>
+            
+            <!-- 変換プログレスバー -->
+            <div id="convert-progress-container" class="form-section text-center" style="display: none; margin-top: 30px;">
+                <h5 id="convert-progress-status" class="mb-3">PDFを解析中...</h5>
+                <div class="progress mb-3" style="height: 25px;">
+                    <div id="convert-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;">0%</div>
+                </div>
+                <p class="text-muted small">AIがPDFの内容を解析し、LaTeXコードを生成しています。これには1〜3分かかる場合があります。</p>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -201,6 +237,72 @@
                 option.textContent = topic;
                 topicSelect.appendChild(option);
             });
+        }
+    });
+
+    // PDF変換リクエスト処理
+    document.getElementById('pdf-convert-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('convert-btn');
+        const spinner = document.getElementById('convert-spinner');
+        const exchangeIcon = document.getElementById('exchange-icon');
+        const progressContainer = document.getElementById('convert-progress-container');
+        const progressBar = document.getElementById('convert-progress-bar');
+        const progressStatus = document.getElementById('convert-progress-status');
+
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        exchangeIcon.classList.add('d-none');
+        progressContainer.style.display = 'block';
+
+        let progress = 0;
+        const interval = setInterval(() => {
+            if (progress < 90) {
+                progress += Math.random() * 5;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = `${Math.round(progress)}%`;
+                progressBar.textContent = `${Math.round(progress)}%`;
+                
+                if (progress < 30) progressStatus.textContent = "PDFを読み込み中...";
+                else if (progress < 60) progressStatus.textContent = "ページを画像に変換中...";
+                else progressStatus.textContent = "AIがLaTeXコードを生成中...";
+            }
+        }, 2000);
+
+        try {
+            const formData = new FormData(e.target);
+            const response = await fetch('/convert', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100%';
+                progressStatus.textContent = "変換完了！ダウンロードを開始します。";
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const filename = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'converted.tex';
+                a.download = filename.replace(/"/g, '');
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } else {
+                const errorText = await response.text();
+                throw new Error(errorText || '変換に失敗しました。');
+            }
+        } catch (error) {
+            clearInterval(interval);
+            alert(error.message);
+        } finally {
+            btn.disabled = false;
+            spinner.classList.add('d-none');
+            exchangeIcon.classList.remove('d-none');
         }
     });
 
