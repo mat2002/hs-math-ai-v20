@@ -20,7 +20,7 @@ def compile_latex_to_pdf(latex_content: str, output_filename: str, output_dir: s
         print(f"Attempt {attempt + 1}/{max_retries} to compile LaTeX...")
         
         # 一時ファイルにLaTeXコンテンツを書き込む
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.tex', encoding='utf-8', dir=output_dir) as tmp_tex_file:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.tex', encoding='utf-8', dir=output_dir) as tmp_tex_file:
             tmp_tex_file.write(current_latex_content)
             tmp_tex_path = tmp_tex_file.name
         
