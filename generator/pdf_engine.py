@@ -1,4 +1,4 @@
-'''import os
+import os
 import subprocess
 import shutil
 import time
@@ -143,4 +143,3 @@ $x^2 + y^2 = z^2
     # クリーンアップ
     # shutil.rmtree(test_dir)
     # print(f"Cleaned up {test_dir}")
-'''
