@@ -31,7 +31,7 @@ def compile_latex_to_pdf(latex_content: str, output_filename: str, output_dir: s
         try:
             uplatex_proc = subprocess.run(
                 ["uplatex", "-interaction=nonstopmode", tmp_tex_path],
-                check=False, capture_output=True, text=True, encoding=\'utf-8\', cwd=output_dir
+                check=False, capture_output=True, text=True, encoding='utf-8', cwd=output_dir
             )
             uplatex_log = uplatex_proc.stdout + uplatex_proc.stderr
             if uplatex_proc.returncode != 0:
@@ -71,7 +71,7 @@ def compile_latex_to_pdf(latex_content: str, output_filename: str, output_dir: s
         try:
             dvipdfmx_proc = subprocess.run(
                 ["dvipdfmx", dvi_file_path],
-                check=False, capture_output=True, text=True, encoding=\'utf-8\', cwd=output_dir
+                check=False, capture_output=True, text=True, encoding='utf-8', cwd=output_dir
             )
             dvipdfmx_log = dvipdfmx_proc.stdout + dvipdfmx_proc.stderr
             if dvipdfmx_proc.returncode != 0:
