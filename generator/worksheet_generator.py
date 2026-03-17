@@ -27,7 +27,7 @@ def generate_worksheet_pdf(title, problems, output_filename="worksheet.pdf"):
 
         return pdf_path
     else:
-        print(f"Error: PDF generation failed for {tex_path}")
+        print(f"Error: PDF generation failed for {pdf_path}")
         return None
 
 if __name__ == "__main__":

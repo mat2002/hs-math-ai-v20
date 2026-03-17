@@ -9,9 +9,10 @@ def analyze_latex_log_and_suggest_fix(latex_content: str, log_content: str) -> s
     model_name, params = get_model_config("latex_fixer")
 
     prompt = f"""
-以下のLaTeXコードのコンパイルログを分析し、エラーを修正するためのLaTeXコードの修正案を提案してください。
-修正は、元のLaTeXコードの該当箇所を直接修正する形式で提供してください。
-修正箇所のみを抽出し、それ以外の部分は変更しないでください。
+以下のLaTeXコードのコンパイルログを分析し、エラーを修正するための修正案をJSON形式で提案してください。
+JSONは `original_snippet` と `corrected_snippet` の2つのキーを持つオブジェクトです。
+`original_snippet` には修正前のコードの該当部分を、`corrected_snippet` には修正後のコードの該当部分を記述してください。
+修正箇所は最小限に留め、それ以外の部分は変更しないでください。
 
 --- LaTeXコード ---
 {latex_content}
@@ -19,7 +20,7 @@ def analyze_latex_log_and_suggest_fix(latex_content: str, log_content: str) -> s
 --- コンパイルログ ---
 {log_content}
 
---- 修正案 (修正されたLaTeXコードの該当部分のみ) ---
+--- 修正案 (JSON形式) ---
 """
 
     try:
@@ -76,7 +77,22 @@ def apply_fix_to_latex(original_latex: str, fix_suggestion: str) -> str:
     # AIが修正後の完全なLaTeXコードを返す場合
     # return fix_suggestion
 
-    # 一旦、AIの修正案を元のLaTeXコードに直接適用する（AIが完全な修正済みコードを返す前提）
-    # この動作は、AIの出力形式に依存するため、注意が必要。
-    return fix_suggestion # AIが完全な修正済みコードを返す場合
+    import json
+    try:
+        fix_data = json.loads(fix_suggestion)
+        original_snippet = fix_data.get("original_snippet")
+        corrected_snippet = fix_data.get("corrected_snippet")
+
+        if original_snippet and corrected_snippet:
+            # 最初の出現箇所のみを置換
+            return original_latex.replace(original_snippet, corrected_snippet, 1)
+        else:
+            print("AI fix suggestion is not in the expected JSON format.")
+            return original_latex
+    except json.JSONDecodeError:
+        print("AI fix suggestion is not a valid JSON string.")
+        return original_latex
+    except Exception as e:
+        print(f"Error applying AI fix: {e}")
+        return original_latex
 
