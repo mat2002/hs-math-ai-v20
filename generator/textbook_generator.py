@@ -20,21 +20,11 @@ def generate_textbook_pdf(title, chapters, output_filename="textbook.pdf"):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
         
-    tex_path = os.path.join(output_dir, output_filename.replace('.pdf', '.tex'))
-
-    # .texファイルの書き出し
-    with open(tex_path, "w", encoding="utf-8") as f:
-        f.write(latex_content)
-
     # PDF生成エンジンを使用してコンパイル
-    pdf_path = compile_latex_to_pdf(tex_path, output_dir)
+    pdf_path = compile_latex_to_pdf(latex_content, output_filename, output_dir)
 
     if pdf_path:
-        # 中間ファイルを削除
-        for ext in [".aux", ".log", ".dvi", ".toc"]:
-            temp_file = tex_path.replace('.tex', ext)
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
+
         return pdf_path
     else:
         print(f"Error: PDF generation failed for {tex_path}")
@@ -54,7 +44,7 @@ if __name__ == "__main__":
             ]
         }
     ]
-    result = generate_textbook_pdf("テスト教科書", test_chapters)
+    result = generate_textbook_pdf("テスト教科書", test_chapters, "test_textbook.pdf")
     if result:
         print(f"Textbook PDF generated at: {result}")
     else:

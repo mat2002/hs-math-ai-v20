@@ -20,21 +20,11 @@ def generate_worksheet_pdf(title, problems, output_filename="worksheet.pdf"):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
         
-    tex_path = os.path.join(output_dir, output_filename.replace('.pdf', '.tex'))
-
-    # .texファイルの書き出し
-    with open(tex_path, "w", encoding="utf-8") as f:
-        f.write(latex_content)
-
     # PDF生成エンジンを使用してコンパイル
-    pdf_path = compile_latex_to_pdf(tex_path, output_dir)
+    pdf_path = compile_latex_to_pdf(latex_content, output_filename, output_dir)
 
     if pdf_path:
-        # 中間ファイルを削除
-        for ext in [".aux", ".log", ".dvi"]:
-            temp_file = tex_path.replace('.tex', ext)
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
+
         return pdf_path
     else:
         print(f"Error: PDF generation failed for {tex_path}")
@@ -49,7 +39,7 @@ if __name__ == "__main__":
             "answer_key": "$x = \\frac{2 \\pm \\sqrt{2}}{2}$"
         }
     ]
-    result = generate_worksheet_pdf("テスト演習プリント", test_problems)
+    result = generate_worksheet_pdf("テスト演習プリント", test_problems, "test_worksheet.pdf")
     if result:
         print(f"PDF generated at: {result}")
     else:
