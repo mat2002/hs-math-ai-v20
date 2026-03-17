@@ -2,17 +2,14 @@ import os
 import sys
 import random
 import sqlite3
-import tempfile
 from flask import Flask, render_template, request, send_file, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from werkzeug.utils import secure_filename
 
 # プロジェクトルートをパスに追加
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ai.problem_generator import generate_problem
 from ai.textbook_writer import write_textbook_chapter
-from ai.pdf_analyzer import analyze_pdf_and_generate_latex
 from generator.worksheet_generator import generate_worksheet_pdf
 from generator.textbook_generator import generate_textbook_pdf
 from generator.mock_exam_generator import generate_mock_exam_pdf
@@ -173,50 +170,6 @@ def generate():
         return response
     else:
         return "PDFの生成に失敗しました。", 500
-
-@app.route('/convert', methods=['POST'])
-@login_required
-def convert():
-    # PDFファイルのアップロード処理
-    if 'pdf_file' not in request.files:
-        return "PDFファイルが選択されていません。", 400
-    
-    pdf_file = request.files['pdf_file']
-    if pdf_file.filename == '':
-        return "PDFファイルが選択されていません。", 400
-    
-    if not pdf_file.filename.lower().endswith('.pdf'):
-        return "PDFファイルのみサポートしています。", 400
-    
-    # 一時ファイルにPDFを保存
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
-        pdf_file.save(tmp_file.name)
-        tmp_pdf_path = tmp_file.name
-    
-    try:
-        # PDFを解析してLaTeXコードを生成
-        latex_code = analyze_pdf_and_generate_latex(tmp_pdf_path)
-        
-        # LaTeXコードを一時ファイルに保存
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.tex', encoding='utf-8') as tex_file:
-            tex_file.write(latex_code)
-            tex_path = tex_file.name
-        
-        # ダウンロード用のファイル名を生成
-        safe_filename = f"converted_{random.randint(1000,9999)}.tex"
-        
-        # ファイルをダウンロードして返す
-        response = send_file(tex_path, as_attachment=True)
-        response.headers["Content-Disposition"] = f"attachment; filename={safe_filename}"
-        return response
-    
-    except Exception as e:
-        return f"エラーが発生しました: {str(e)}", 500
-    
-    finally:
-        # 一時ファイルをクリーンアップ
-        if os.path.exists(tmp_pdf_path):
-            os.remove(tmp_pdf_path)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
