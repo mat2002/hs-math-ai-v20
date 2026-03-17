@@ -1,4 +1,4 @@
-import os
+'''import os
 import subprocess
 import shutil
 import time
@@ -31,7 +31,7 @@ def compile_latex_to_pdf(latex_content: str, output_filename: str, output_dir: s
         try:
             lualatex_proc = subprocess.run(
                 ["lualatex", "-interaction=nonstopmode", tmp_tex_path],
-                check=False, capture_output=True, text=True, encoding=\'utf-8\', cwd=output_dir
+                check=False, capture_output=True, text=True, encoding='utf-8', cwd=output_dir
             )
             lualatex_log = lualatex_proc.stdout + lualatex_proc.stderr
             if lualatex_proc.returncode != 0:
@@ -143,3 +143,4 @@ $x^2 + y^2 = z^2
     # クリーンアップ
     # shutil.rmtree(test_dir)
     # print(f"Cleaned up {test_dir}")
+'''
