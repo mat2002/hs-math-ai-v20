@@ -6,8 +6,8 @@ def validate_latex(text: str) -> bool:
     数式の閉じ忘れなどをチェックします。
     """
     # 数式環境の閉じ忘れチェック
-    if text.count("\\\[") != text.count("\\\]"):
-        print("LaTeX Validation Error: Mismatched \[ and \] environments.")
+    if text.count(r"\[") != text.count(r"\]"):
+        print(r"LaTeX Validation Error: Mismatched \[ and \] environments.")
         return False
 
     if text.count("$") % 2 != 0:
@@ -44,20 +44,18 @@ def validate_tikz(code: str) -> bool:
 if __name__ == '__main__':
     # テストケース
     print("--- LaTeX Validation Tests ---")
-    valid_latex = "This is $a+b$ math. \[ x^2 \] And some text."
-    invalid_latex_dollar = "This is $a+b$ math. \[ x^2 \] And some text $"
-    invalid_latex_bracket = "This is $a+b$ math. \[ x^2 And some text."
-    invalid_latex_env = "\\begin{document} Hello \\end{document} \\begin{problem} Problem."
+    valid_latex = r"This is $a+b$ math. \[ x^2 \] And some text."
+    invalid_latex_dollar = r"This is $a+b$ math. \[ x^2 \] And some text $"
+    invalid_latex_bracket = r"This is $a+b$ math. \[ x^2 And some text."
+    invalid_latex_env = r"\begin{document} Hello \end{document} \begin{problem} Problem."
 
     print(f"Valid LaTeX: {validate_latex(valid_latex)}") # Expected: True
     print(f"Invalid LaTeX (dollar): {validate_latex(invalid_latex_dollar)}") # Expected: False
     print(f"Invalid LaTeX (bracket): {validate_latex(invalid_latex_bracket)}") # Expected: False
     print(f"Invalid LaTeX (environment): {validate_latex(invalid_latex_env)}") # Expected: False
 
-    print("\n--- TikZ Validation Tests ---")
-    valid_tikz = "\\begin{tikzpicture}\draw (0,0) -- (1,1);\\end{tikzpicture}"
-    invalid_tikz_begin = "\\draw (0,0) -- (1,1);\\end{tikzpicture}"
-    invalid_tikz_end = "\\begin{tikzpicture}\draw (0,0) -- (1,1);"
+    print("\n--- TikZ Validation Tests ---")    valid_tikz = r"\begin{tikzpicture}\draw (0,0) -- (1,1);\end{tikzpicture}"
+    invalid_tikz_begin = r"\draw (0,0) -- (1,1);\end{tikzpicture}"    invalid_tikz_end = r"\begin{tikzpicture}\draw (0,0) -- (1,1);"
 
     print(f"Valid TikZ: {validate_tikz(valid_tikz)}") # Expected: True
     print(f"Invalid TikZ (missing begin): {validate_tikz(invalid_tikz_begin)}") # Expected: False
