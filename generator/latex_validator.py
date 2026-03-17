@@ -54,8 +54,10 @@ if __name__ == '__main__':
     print(f"Invalid LaTeX (bracket): {validate_latex(invalid_latex_bracket)}") # Expected: False
     print(f"Invalid LaTeX (environment): {validate_latex(invalid_latex_env)}") # Expected: False
 
-    print("\n--- TikZ Validation Tests ---")    valid_tikz = r"\begin{tikzpicture}\draw (0,0) -- (1,1);\end{tikzpicture}"
-    invalid_tikz_begin = r"\draw (0,0) -- (1,1);\end{tikzpicture}"    invalid_tikz_end = r"\begin{tikzpicture}\draw (0,0) -- (1,1);"
+    print("\n--- TikZ Validation Tests ---")
+    valid_tikz = r"\begin{tikzpicture}\draw (0,0) -- (1,1);\end{tikzpicture}"
+    invalid_tikz_begin = r"\draw (0,0) -- (1,1);\end{tikzpicture}"
+    invalid_tikz_end = r"\begin{tikzpicture}\draw (0,0) -- (1,1);"
 
     print(f"Valid TikZ: {validate_tikz(valid_tikz)}") # Expected: True
     print(f"Invalid TikZ (missing begin): {validate_tikz(invalid_tikz_begin)}") # Expected: False
